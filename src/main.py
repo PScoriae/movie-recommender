@@ -22,21 +22,24 @@ such as actor, genre, director and company.
 # takes semi-colon delimited string of movies and returns a
 # url encoded list of strings for API call
 def processUserInput(userInput):
-    movieList = userInput.split(";")
+    def splitInput(text):
+        return text.split(";")
 
-    # 10
-    # remove trailing whitespace
-    strippedMovieList = [x.strip() for x in movieList]
-    # alternative
-    # 6 and 9
-    # strippedMovieList = list(map(lambda movie: movie.strip(), movieList))
+    def stripList(movieList):
+        return [x.strip() for x in movieList]
 
-    # 6 and 9
-    return list(map(lambda movie: requote_uri(movie), strippedMovieList))
+    def uriEncodeStrings(strippedMovieList):
+        return list(map(lambda movie: requote_uri(movie), strippedMovieList))
 
+    # do not modify original input
+    processedList = userInput
 
-# 2
-getMovieList = processUserInput
+    # 3
+    actions = [splitInput, stripList, uriEncodeStrings]
+
+    for action in actions:
+        processedList = action(processedList)
+    return processedList
 
 
 # 4
@@ -53,6 +56,8 @@ def forMovies(funcGetMovieList):
 
 
 # 5
+# constructor for making functions that return
+# movie results until the nth element
 def untilNthMovie(n):
     def getNthMovieOnly(obj):
         return obj["results"][:n+1]
@@ -65,7 +70,7 @@ def getMostPopularMovies(moviesInfos, filterFunc):
 
 
 # 2
-getMoviesInfos = forMovies(getMovieList)
+getMoviesInfos = forMovies(processUserInput)
 
 # 2
 moviesInfos = getMoviesInfos(tmdbApiKey)
@@ -75,3 +80,5 @@ getFirstMovieOnly = untilNthMovie(0)
 
 
 movieList = getMostPopularMovies(moviesInfos, getFirstMovieOnly)
+
+print(movieList)
