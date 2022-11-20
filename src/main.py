@@ -124,7 +124,7 @@ def queryRecByDirector(tmdbApiKey, director):
     return res['results'][:3]
 
 
-def tmp(unwantedMovieIds):
+def baseFilter(unwantedMovieIds):
     def notSearched(movieObj):
         return movieObj['id'] not in unwantedMovieIds
     return notSearched
@@ -187,7 +187,7 @@ combinedMovieList = [*top3MoviesByGenre, *
                      flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
 
 
-filterMovieList = tmp(searchedMovieIds)
+filterMovieList = baseFilter(searchedMovieIds)
 
 filteredCombinedMovieList = list(
     filter(filterMovieList, combinedMovieList))
@@ -215,6 +215,5 @@ Overview: {top3Movies[1][1]}
 
 3. {top3Movies[2][0]}
 Overview: {top3Movies[2][1]}
-
 """
 )
