@@ -92,14 +92,39 @@ def getCastId(movieCastList):
 def getDirector(obj):
     directorNames = []
     crewList = obj['crew']
+
+    # 7
     directorList = list(filter(lambda x: x['job'] == "Director", crewList))
     for director in directorList:
         directorNames.append(director['id'])
     return directorNames
 
 
-def getRecommendations(genres, cast, directors):
-    requests.get(f"")
+def queryRecByGenre(tmdbApiKey, genreList):
+    genreListString = ", ".join(genreList)
+    res = requests.get(
+        f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={requote_uri(genreListString)}&with_watch_monetization_types=flatrate").json()
+    if res['total_results'] == 0:
+        queryRecByGenre(tmdbApiKey, list(genreList)[:len(genreList)-1])
+    return res['results'][:3]
+
+
+def queryRecByLeadActor(tmdbApiKey, leadActor):
+    res = requests.get(
+        f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_cast={leadActor}&with_watch_monetization_types=flatrate").json()
+    return res['results'][:3]
+
+
+def queryRecByDirector(tmdbApiKey, director):
+    res = requests.get(
+        f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_crew={director}&with_watch_monetization_types=flatrate").json()
+    return res['results'][:3]
+
+
+def tmp(unwantedMovieIds):
+    def notSearched(movieObj):
+        return movieObj['id'] not in unwantedMovieIds
+    return notSearched
 
 
 # 2
@@ -115,27 +140,80 @@ movieInfoList = filterTopResults(moviesInfos, getFirstMovieOnly)
 
 moviesGenresIds = list(map(getGenreMovieId, movieInfoList))
 
+searchedMovieIds = [int(x['id']) for x in movieInfoList]
+
 # 6 and 9
 genreIds = list(map(lambda x: x['genreIds'], moviesGenresIds))
 
 # 10
-flattenedGenreIds = set([item for sublist in genreIds for item in sublist])
+flattenedGenreIds = set([str(item)
+                        for sublist in genreIds for item in sublist])
 
 credits = list(map(getCastCrew, moviesGenresIds))
 
-getFirstFiveCast = untilNthCast(1, "cast")
+getLeadCast = untilNthCast(1, "cast")
 
-castList = filterTopResults(credits, getFirstFiveCast)
+castList = filterTopResults(credits, getLeadCast)
 
 castIds = list(map(getCastId, castList))
 
-flattenedCastIds = set([item for sublist in castIds for item in sublist])
+flattenedCastIds = set([str(item) for sublist in castIds for item in sublist])
 
 directorList = list(map(getDirector, credits))
 
 flattenedDirectorsIds = set(
-    [item for sublist in directorList for item in sublist])
+    [str(item) for sublist in directorList for item in sublist])
 
-print(flattenedGenreIds)
-print(flattenedCastIds)
-print(flattenedDirectorsIds)
+top3MoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds)
+topMoviesByLeadActor = list(queryRecByLeadActor(tmdbApiKey, x)
+                            for x in flattenedCastIds)
+flattenedTopMoviesByLeadActor = [
+    item for sublist in topMoviesByLeadActor for item in sublist]
+topMoviesByDirector = list(queryRecByDirector(tmdbApiKey, x)
+                           for x in flattenedDirectorsIds)
+flattenedTopMoviesByDirector = [
+    item for sublist in topMoviesByDirector for item in sublist]
+
+combinedMovieList = [*top3MoviesByGenre, *
+                     flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
+
+
+filterMovieList = tmp(searchedMovieIds)
+
+filteredCombinedMovieList = list(
+    filter(filterMovieList, combinedMovieList))
+
+sortedMovieList = sorted(filteredCombinedMovieList,
+                         key=lambda x: x['popularity'], reverse=True)
+
+formattedMovieList = list(
+    map(lambda x: [x['original_title'], x['overview']], sortedMovieList))
+
+
+def getUniqueMovieList(movieList):
+    tmp = []
+    for movie in movieList:
+        if movie not in tmp:
+            tmp.append(movie)
+    return tmp
+
+
+uniqueMovieList = getUniqueMovieList(formattedMovieList)
+
+top3Movies = uniqueMovieList[:3]
+
+
+print(
+    f"""
+Your top 3 recommended movies are:
+1. {top3Movies[0][0]}
+Overview: {top3Movies[0][1]}
+
+2. {top3Movies[1][0]}
+Overview: {top3Movies[1][1]}
+
+3. {top3Movies[2][0]}
+Overview: {top3Movies[2][1]}
+
+"""
+)
