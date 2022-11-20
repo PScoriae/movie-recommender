@@ -16,7 +16,7 @@ For example:
 top gun; joker; baby driver
 
 Using the list, I will recommend you movies that you will probably like based on criteria
-such as actor, genre, director and company.
+such as actor, genre and director.
 """)
 
 
@@ -67,6 +67,7 @@ def untilNthMovie(n):
     return getNthMovieOnly
 
 
+# 5
 def untilNthCast(n, key):
     def getNthCastOnly(obj):
         return obj[key][:n]
@@ -166,7 +167,6 @@ castList = filterTopResults(credits, getLeadCast)
 
 castIds = list(map(getCastId, castList))
 
-# flattenedCastIds = set([str(item) for sublist in castIds for item in sublist])
 flattenedCastIds = set(reduce(lambda a, b: a+b, castIds))
 
 directorList = list(map(getDirector, credits))
