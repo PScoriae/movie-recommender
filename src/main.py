@@ -2,6 +2,7 @@ import requests
 from requests.utils import requote_uri
 from dotenv import load_dotenv
 import os
+from functools import reduce
 
 load_dotenv()
 tmdbApiKey = os.environ["TMDB_API_KEY"]
@@ -101,7 +102,8 @@ def getDirector(obj):
 
 
 def queryRecByGenre(tmdbApiKey, genreList):
-    genreListString = ", ".join(genreList)
+    tmp = list(map(lambda x: str(x), genreList))
+    genreListString = ", ".join(tmp)
     res = requests.get(
         f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={requote_uri(genreListString)}&with_watch_monetization_types=flatrate").json()
     if res['total_results'] == 0:
@@ -127,6 +129,14 @@ def tmp(unwantedMovieIds):
     return notSearched
 
 
+def getUniqueMovieList(movieList):
+    tmp = []
+    for movie in movieList:
+        if movie not in tmp:
+            tmp.append(movie)
+    return tmp
+
+
 # 2
 getMoviesInfos = forMovies(processUserInput)
 
@@ -146,8 +156,7 @@ searchedMovieIds = [int(x['id']) for x in movieInfoList]
 genreIds = list(map(lambda x: x['genreIds'], moviesGenresIds))
 
 # 10
-flattenedGenreIds = set([str(item)
-                        for sublist in genreIds for item in sublist])
+flattenedGenreIds = set(reduce(lambda a, b: a+b, genreIds))
 
 credits = list(map(getCastCrew, moviesGenresIds))
 
@@ -157,12 +166,12 @@ castList = filterTopResults(credits, getLeadCast)
 
 castIds = list(map(getCastId, castList))
 
-flattenedCastIds = set([str(item) for sublist in castIds for item in sublist])
+# flattenedCastIds = set([str(item) for sublist in castIds for item in sublist])
+flattenedCastIds = set(reduce(lambda a, b: a+b, castIds))
 
 directorList = list(map(getDirector, credits))
 
-flattenedDirectorsIds = set(
-    [str(item) for sublist in directorList for item in sublist])
+flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorList))
 
 top3MoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds)
 topMoviesByLeadActor = list(queryRecByLeadActor(tmdbApiKey, x)
@@ -188,14 +197,6 @@ sortedMovieList = sorted(filteredCombinedMovieList,
 
 formattedMovieList = list(
     map(lambda x: [x['original_title'], x['overview']], sortedMovieList))
-
-
-def getUniqueMovieList(movieList):
-    tmp = []
-    for movie in movieList:
-        if movie not in tmp:
-            tmp.append(movie)
-    return tmp
 
 
 uniqueMovieList = getUniqueMovieList(formattedMovieList)
