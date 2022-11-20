@@ -25,9 +25,11 @@ def processUserInput(userInput):
     def splitInput(text):
         return text.split(";")
 
+    # 10
     def stripList(movieList):
         return [x.strip() for x in movieList]
 
+    # 6 and 9
     def uriEncodeStrings(strippedMovieList):
         return list(map(lambda movie: requote_uri(movie), strippedMovieList))
 
@@ -60,13 +62,44 @@ def forMovies(funcGetMovieList):
 # movie results until the nth element
 def untilNthMovie(n):
     def getNthMovieOnly(obj):
-        return obj["results"][:n+1]
+        return obj["results"][n]  # TODO fix to use [:n+1]
     return getNthMovieOnly
 
 
+def untilNthCast(n, key):
+    def getNthCastOnly(obj):
+        return obj[key][:n]
+    return getNthCastOnly
+
+
 # 4
-def getMostPopularMovies(moviesInfos, filterFunc):
-    return list(map(filterFunc, moviesInfos))
+def filterTopResults(data, filterFunc):
+    return list(map(filterFunc, data))
+
+
+def getGenreMovieId(obj):
+    return {'movieId': obj['id'], 'genreIds': obj['genre_ids']}
+
+
+def getCastCrew(moviesGenresIdsObj):
+    return requests.get(f"https://api.themoviedb.org/3/movie/{moviesGenresIdsObj['movieId']}/credits?api_key={tmdbApiKey}&language=en-US").json()
+
+
+def getCastId(movieCastList):
+    return list(map(lambda x: x['id'], movieCastList))
+
+
+def getDirector(obj):
+    directorNames = []
+    crewList = obj['crew']
+    directorList = list(filter(lambda x: x['job'] == "Director", crewList))
+    for director in directorList:
+        directorNames.append(director['id'])
+    return directorNames
+
+
+def getRecommendations(genres, cast, directors):
+    requests.get(f"")
 
 
 # 2
@@ -78,7 +111,31 @@ moviesInfos = getMoviesInfos(tmdbApiKey)
 # 2
 getFirstMovieOnly = untilNthMovie(0)
 
+movieInfoList = filterTopResults(moviesInfos, getFirstMovieOnly)
 
-movieList = getMostPopularMovies(moviesInfos, getFirstMovieOnly)
+moviesGenresIds = list(map(getGenreMovieId, movieInfoList))
 
-print(movieList)
+# 6 and 9
+genreIds = list(map(lambda x: x['genreIds'], moviesGenresIds))
+
+# 10
+flattenedGenreIds = set([item for sublist in genreIds for item in sublist])
+
+credits = list(map(getCastCrew, moviesGenresIds))
+
+getFirstFiveCast = untilNthCast(1, "cast")
+
+castList = filterTopResults(credits, getFirstFiveCast)
+
+castIds = list(map(getCastId, castList))
+
+flattenedCastIds = set([item for sublist in castIds for item in sublist])
+
+directorList = list(map(getDirector, credits))
+
+flattenedDirectorsIds = set(
+    [item for sublist in directorList for item in sublist])
+
+print(flattenedGenreIds)
+print(flattenedCastIds)
+print(flattenedDirectorsIds)
