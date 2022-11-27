@@ -194,7 +194,7 @@ flattenedCastIds = set(reduce(lambda a, b: a+b, castIds))
 # 4 and 6
 directorList = list(map(getDirector, credits))
 
-# 6 and 8
+# 8 and 9
 flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorList))
 
 topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
