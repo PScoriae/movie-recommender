@@ -93,14 +93,12 @@ def getCastId(movieCastList):
 
 
 def getDirector(obj):
-    directorNames = []
     crewList = obj['crew']
 
     # 7 and 9
     directorList = list(filter(lambda x: x['job'] == "Director", crewList))
-    for director in directorList:
-        directorNames.append(director['id'])
-    return directorNames
+    # 10
+    return [director['id'] for director in directorList]
 
 
 def queryRecByGenre(tmdbApiKey, genreList, max):
