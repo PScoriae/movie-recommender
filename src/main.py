@@ -17,8 +17,14 @@ from functools import reduce
 # 10- List Comprehensions
 # 11- Recursion
 
+# load environment variables for tmdb api key
 load_dotenv()
 tmdbApiKey = os.environ["TMDB_API_KEY"]
+
+
+'''
+START FUNCTIONS
+'''
 
 
 # takes semi-colon delimited string of movies and returns a
@@ -129,6 +135,10 @@ def getUniqueMovieList(movieList):
             tmp.append(movie)
     return tmp
 
+
+'''
+START PROCEDURAL STEPS
+'''
 
 print(
     """
