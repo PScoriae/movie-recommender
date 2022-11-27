@@ -7,18 +7,6 @@ from functools import reduce
 load_dotenv()
 tmdbApiKey = os.environ["TMDB_API_KEY"]
 
-print(
-    """
-Welcome to the Movie Recommender!
-Please enter a semi-colon delimited (;) list of movies that you like and then hit enter.
-
-For example:
-top gun; joker; baby driver
-
-Using the list, I will recommend you movies that you will probably like based on criteria
-such as actor, genre and director.
-""")
-
 
 # takes semi-colon delimited string of movies and returns a
 # url encoded list of strings for API call
@@ -60,22 +48,15 @@ def forMovies(funcGetMovieList):
 
 # 5
 # constructor for making functions that return
-# movie results until the nth element
-def untilNthMovie(n):
-    def getNthMovieOnly(obj):
-        return obj["results"][n]  # TODO fix to use [:n+1]
-    return getNthMovieOnly
-
-
-# 5
-def untilNthCast(n, key):
-    def getNthCastOnly(obj):
+# results until the nth element
+def untilNthElement(n, key):
+    def getNthElementOnly(obj):
         return obj[key][:n]
-    return getNthCastOnly
+    return getNthElementOnly
 
 
 # 4
-def filterTopResults(data, filterFunc):
+def filterResults(data, filterFunc):
     return list(map(filterFunc, data))
 
 
@@ -102,26 +83,20 @@ def getDirector(obj):
     return directorNames
 
 
-def queryRecByGenre(tmdbApiKey, genreList):
+def queryRecByGenre(tmdbApiKey, genreList, max):
     tmp = list(map(lambda x: str(x), genreList))
     genreListString = ", ".join(tmp)
     res = requests.get(
         f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={requote_uri(genreListString)}&with_watch_monetization_types=flatrate").json()
     if res['total_results'] == 0:
-        queryRecByGenre(tmdbApiKey, list(genreList)[:len(genreList)-1])
-    return res['results'][:3]
+        queryRecByGenre(tmdbApiKey, list(genreList)[:len(genreList)-1], 3)
+    return res['results'][:max]
 
 
-def queryRecByLeadActor(tmdbApiKey, leadActor):
+def queryRecByPerson(tmdbApiKey, personType, person, max):
     res = requests.get(
-        f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_cast={leadActor}&with_watch_monetization_types=flatrate").json()
-    return res['results'][:3]
-
-
-def queryRecByDirector(tmdbApiKey, director):
-    res = requests.get(
-        f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_crew={director}&with_watch_monetization_types=flatrate").json()
-    return res['results'][:3]
+        f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_{personType}={person}&with_watch_monetization_types=flatrate").json()
+    return res['results'][:max]
 
 
 def baseFilter(unwantedMovieIds):
@@ -138,6 +113,18 @@ def getUniqueMovieList(movieList):
     return tmp
 
 
+print(
+    """
+Welcome to the Movie Recommender!
+Please enter a semi-colon delimited (;) list of movies that you like and then hit enter.
+
+For example:
+top gun; joker; baby driver
+
+Using the list, I will recommend you movies that you will probably like based on criteria
+such as actor, genre and director.
+""")
+
 # 2
 getMoviesInfos = forMovies(processUserInput)
 
@@ -145,9 +132,9 @@ getMoviesInfos = forMovies(processUserInput)
 moviesInfos = getMoviesInfos(tmdbApiKey)
 
 # 2
-getFirstMovieOnly = untilNthMovie(0)
+getFirstMovieOnly = untilNthElement(1, "results")
 
-movieInfoList = filterTopResults(moviesInfos, getFirstMovieOnly)
+movieInfoList = filterResults(moviesInfos, getFirstMovieOnly)[0]
 
 moviesGenresIds = list(map(getGenreMovieId, movieInfoList))
 
@@ -161,9 +148,9 @@ flattenedGenreIds = set(reduce(lambda a, b: a+b, genreIds))
 
 credits = list(map(getCastCrew, moviesGenresIds))
 
-getLeadCast = untilNthCast(1, "cast")
+getLeadCast = untilNthElement(1, "cast")
 
-castList = filterTopResults(credits, getLeadCast)
+castList = filterResults(credits, getLeadCast)
 
 castIds = list(map(getCastId, castList))
 
@@ -173,17 +160,17 @@ directorList = list(map(getDirector, credits))
 
 flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorList))
 
-top3MoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds)
-topMoviesByLeadActor = list(queryRecByLeadActor(tmdbApiKey, x)
+topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
+topMoviesByLeadActor = list(queryRecByPerson(tmdbApiKey, "cast", x, 3)
                             for x in flattenedCastIds)
 flattenedTopMoviesByLeadActor = [
     item for sublist in topMoviesByLeadActor for item in sublist]
-topMoviesByDirector = list(queryRecByDirector(tmdbApiKey, x)
+topMoviesByDirector = list(queryRecByPerson(tmdbApiKey, "crew", x, 3)
                            for x in flattenedDirectorsIds)
 flattenedTopMoviesByDirector = [
     item for sublist in topMoviesByDirector for item in sublist]
 
-combinedMovieList = [*top3MoviesByGenre, *
+combinedMovieList = [*topMoviesByGenre, *
                      flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
 
 
