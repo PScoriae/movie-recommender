@@ -4,6 +4,19 @@ from dotenv import load_dotenv
 import os
 from functools import reduce
 
+# Key for Functional Programming Concepts and Mechanisms
+# 1- Separating functions and data
+# 2- Assigning a function to a variable
+# 3- Create a list of functions and use that list
+# 4- Passing functions as arguments
+# 5- Returning functions
+# 6- Mapping
+# 7- Filtering
+# 8- Reducing
+# 9- Lambdas
+# 10- List Comprehensions
+# 11- Recursion
+
 load_dotenv()
 tmdbApiKey = os.environ["TMDB_API_KEY"]
 
@@ -68,6 +81,7 @@ def getCastCrew(moviesGenresIdsObj):
     return requests.get(f"https://api.themoviedb.org/3/movie/{moviesGenresIdsObj['movieId']}/credits?api_key={tmdbApiKey}&language=en-US").json()
 
 
+# 6 and 9
 def getCastId(movieCastList):
     return list(map(lambda x: x['id'], movieCastList))
 
@@ -76,7 +90,7 @@ def getDirector(obj):
     directorNames = []
     crewList = obj['crew']
 
-    # 7
+    # 7 and 9
     directorList = list(filter(lambda x: x['job'] == "Director", crewList))
     for director in directorList:
         directorNames.append(director['id'])
@@ -84,11 +98,13 @@ def getDirector(obj):
 
 
 def queryRecByGenre(tmdbApiKey, genreList, max):
+    # 6 and 9
     tmp = list(map(lambda x: str(x), genreList))
     genreListString = ", ".join(tmp)
     res = requests.get(
         f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={requote_uri(genreListString)}&with_watch_monetization_types=flatrate").json()
     if res['total_results'] == 0:
+        # 11
         queryRecByGenre(tmdbApiKey, list(genreList)[:len(genreList)-1], 3)
     return res['results'][:max]
 
@@ -134,39 +150,57 @@ moviesInfos = getMoviesInfos(tmdbApiKey)
 # 2
 getFirstMovieOnly = untilNthElement(1, "results")
 
-movieInfoList = filterResults(moviesInfos, getFirstMovieOnly)[0]
+# 4 and 6
+movieInfoList = list(map(getFirstMovieOnly, moviesInfos))[0]
 
+# 4 and 6
 moviesGenresIds = list(map(getGenreMovieId, movieInfoList))
 
+# 10
 searchedMovieIds = [int(x['id']) for x in movieInfoList]
 
 # 6 and 9
 genreIds = list(map(lambda x: x['genreIds'], moviesGenresIds))
 
-# 10
+# 8 and 9
 flattenedGenreIds = set(reduce(lambda a, b: a+b, genreIds))
 
+# 4 and 6
 credits = list(map(getCastCrew, moviesGenresIds))
 
+# 2
 getLeadCast = untilNthElement(1, "cast")
 
-castList = filterResults(credits, getLeadCast)
+# 4 and 6
+castList = list(map(getLeadCast, credits))
 
+# 4 and 6
 castIds = list(map(getCastId, castList))
 
+# 6 and 8
 flattenedCastIds = set(reduce(lambda a, b: a+b, castIds))
 
+# 4 and 6
 directorList = list(map(getDirector, credits))
 
+# 6 and 8
 flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorList))
 
 topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
-topMoviesByLeadActor = list(queryRecByPerson(tmdbApiKey, "cast", x, 3)
-                            for x in flattenedCastIds)
+
+# 10
+topMoviesByLeadActor = list(queryRecByPerson(
+    tmdbApiKey, "cast", x, 3) for x in flattenedCastIds)
+
+# 10
 flattenedTopMoviesByLeadActor = [
     item for sublist in topMoviesByLeadActor for item in sublist]
+
+# 10
 topMoviesByDirector = list(queryRecByPerson(tmdbApiKey, "crew", x, 3)
                            for x in flattenedDirectorsIds)
+
+# 10
 flattenedTopMoviesByDirector = [
     item for sublist in topMoviesByDirector for item in sublist]
 
@@ -176,12 +210,15 @@ combinedMovieList = [*topMoviesByGenre, *
 
 filterMovieList = baseFilter(searchedMovieIds)
 
+# 4 and 7
 filteredCombinedMovieList = list(
     filter(filterMovieList, combinedMovieList))
 
+# 9
 sortedMovieList = sorted(filteredCombinedMovieList,
                          key=lambda x: x['popularity'], reverse=True)
 
+# 6 and 9
 formattedMovieList = list(
     map(lambda x: [x['original_title'], x['overview']], sortedMovieList))
 
