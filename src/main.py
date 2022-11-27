@@ -115,6 +115,7 @@ def queryRecByPerson(tmdbApiKey, personType, person, max):
     return res['results'][:max]
 
 
+# 5
 def baseFilter(unwantedMovieIds):
     def notSearched(movieObj):
         return movieObj['id'] not in unwantedMovieIds
