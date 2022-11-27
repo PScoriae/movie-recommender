@@ -218,7 +218,7 @@ flattenedTopMoviesByDirector = [
 combinedMovieList = [*topMoviesByGenre, *
                      flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
 
-
+# 2
 filterMovieList = baseFilter(searchedMovieIds)
 
 # 4 and 7
