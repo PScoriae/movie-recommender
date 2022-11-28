@@ -107,7 +107,7 @@ def getDirectorIds(obj):
 
 def queryRecByGenre(tmdbApiKey, genreList, max):
     # 6 and 9
-    tmp = list(map(lambda x: str(x), genreList))
+    tmp = [str(x) for x in genreList]
     genreListString = ", ".join(tmp)
     res = requests.get(
         f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={requote_uri(genreListString)}&with_watch_monetization_types=flatrate").json()
