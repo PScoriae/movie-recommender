@@ -106,7 +106,7 @@ def getDirectorIds(obj):
 
 
 def queryRecByGenre(tmdbApiKey, genreList, max):
-    # 6 and 9
+    # 10
     tmp = [str(x) for x in genreList]
     genreListString = ", ".join(tmp)
     res = requests.get(
