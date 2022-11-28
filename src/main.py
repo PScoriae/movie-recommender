@@ -92,7 +92,7 @@ def getCastId(movieCastList):
     return list(map(lambda x: x['id'], movieCastList))
 
 
-def getDirector(obj):
+def getDirectorIds(obj):
     crewList = obj['crew']
 
     # 7 and 9
@@ -190,10 +190,10 @@ castIds = list(map(getCastId, castList))
 flattenedCastIds = set(reduce(lambda a, b: a+b, castIds))
 
 # 4 and 6
-directorList = list(map(getDirector, credits))
+directorIdList = list(map(getDirectorIds, credits))
 
 # 8 and 9
-flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorList))
+flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorIdList))
 
 topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
 
@@ -213,6 +213,7 @@ topMoviesByDirector = list(queryRecByPerson(tmdbApiKey, "crew", x, 3)
 flattenedTopMoviesByDirector = list(
     reduce(lambda a, b: a+b, topMoviesByDirector))
 
+# use spread operator to combine all lists into a single list
 combinedMovieList = [*topMoviesByGenre, *
                      flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
 
