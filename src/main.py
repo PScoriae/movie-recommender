@@ -134,6 +134,15 @@ def getUniqueMovieList(movieList):
     return tmp
 
 
+# 6 and 8
+def flatten2DList(myList, setFlag):
+    flattenedList = reduce(lambda a, b: a+b, myList)
+    if setFlag == 1:
+        return set(flattenedList)
+    elif setFlag == 0:
+        return list(flattenedList)
+
+
 '''
 START PROCEDURAL STEPS
 '''
@@ -186,14 +195,12 @@ castList = list(map(getLeadCast, credits))
 # 4 and 6
 castIds = list(map(getCastId, castList))
 
-# 6 and 8
-flattenedCastIds = set(reduce(lambda a, b: a+b, castIds))
+flattenedCastIds = flatten2DList(castIds, 1)
 
 # 4 and 6
 directorIdList = list(map(getDirectorIds, credits))
 
-# 8 and 9
-flattenedDirectorsIds = set(reduce(lambda a, b: a+b, directorIdList))
+flattenedDirectorsIds = flatten2DList(directorIdList, 1)
 
 topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
 
@@ -201,28 +208,24 @@ topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
 topMoviesByLeadActor = list(queryRecByPerson(
     tmdbApiKey, "cast", x, 3) for x in flattenedCastIds)
 
-# 10
-flattenedTopMoviesByLeadActor = list(
-    reduce(lambda a, b: a+b, topMoviesByLeadActor))
+flattenedTopMoviesByLeadActor = flatten2DList(topMoviesByLeadActor, 0)
 
 # 10
 topMoviesByDirector = list(queryRecByPerson(tmdbApiKey, "crew", x, 3)
                            for x in flattenedDirectorsIds)
 
-# 10
-flattenedTopMoviesByDirector = list(
-    reduce(lambda a, b: a+b, topMoviesByDirector))
+flattenedTopMoviesByDirector = flatten2DList(topMoviesByDirector, 0)
 
 # use spread operator to combine all lists into a single list
 combinedMovieList = [*topMoviesByGenre, *
                      flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
 
 # 2
-filterMovieList = baseFilter(searchedMovieIds)
+getUniqueMovieIds = baseFilter(searchedMovieIds)
 
 # 4 and 7
 filteredCombinedMovieList = list(
-    filter(filterMovieList, combinedMovieList))
+    filter(getUniqueMovieIds, combinedMovieList))
 
 # 9
 sortedMovieList = sorted(filteredCombinedMovieList,
