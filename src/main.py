@@ -62,7 +62,8 @@ def forMovies(funcGetMovieList):
     # 10
     # response returns list of objects matching search criteria
     def callTmdbApi(tmdbApiKey):
-        return [requests.get(f"https://api.themoviedb.org/3/search/movie?api_key={tmdbApiKey}&language=en-US&query={movieName}&page=1&include_adult=false").json() for movieName in funcGetMovieList(input())]
+        return [requests.get(f"https://api.themoviedb.org/3/search/movie?api_key={tmdbApiKey}&language=en-US&query={movieName}&page=1&include_adult=false").json()
+                for movieName in funcGetMovieList(input())]
 
     # 5
     return callTmdbApi
