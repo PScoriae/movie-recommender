@@ -37,6 +37,9 @@ def processUserInput(userInput):
     def stripList(movieList):
         return [x.strip() for x in movieList]
 
+    def removeEmptyStrings(movieList):
+        return list(filter(lambda x: x != "", movieList))
+
     # 6 and 9
     def uriEncodeStrings(strippedMovieList):
         return list(map(lambda movie: requote_uri(movie), strippedMovieList))
@@ -45,7 +48,7 @@ def processUserInput(userInput):
     processedList = userInput
 
     # 3
-    actions = [splitInput, stripList, uriEncodeStrings]
+    actions = [splitInput, stripList, removeEmptyStrings, uriEncodeStrings]
 
     for action in actions:
         processedList = action(processedList)
@@ -109,7 +112,7 @@ def queryRecByGenre(tmdbApiKey, genreList, max):
         f"https://api.themoviedb.org/3/discover/movie?api_key={tmdbApiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={requote_uri(genreListString)}&with_watch_monetization_types=flatrate").json()
     if res['total_results'] == 0:
         # 11
-        queryRecByGenre(tmdbApiKey, list(genreList)[:len(genreList)-1], 3)
+        queryRecByGenre(tmdbApiKey, genreList[:len(genreList)-1], max)
     return res['results'][:max]
 
 
