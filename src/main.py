@@ -181,7 +181,7 @@ searchedMovieIds = [int(x['id']) for x in movieInfoList]
 genreIds = list(map(lambda x: x['genreIds'], moviesGenresIds))
 
 # 8 and 9
-flattenedGenreIds = set(reduce(lambda a, b: a+b, genreIds))
+flattenedGenreIds = flatten2DList(genreIds, 1)
 
 # 4 and 6
 credits = list(map(getCastCrew, moviesGenresIds))
@@ -205,14 +205,14 @@ flattenedDirectorsIds = flatten2DList(directorIdList, 1)
 topMoviesByGenre = queryRecByGenre(tmdbApiKey, flattenedGenreIds, 3)
 
 # 10
-topMoviesByLeadActor = list(queryRecByPerson(
-    tmdbApiKey, "cast", x, 3) for x in flattenedCastIds)
+topMoviesByLeadActor = [queryRecByPerson(
+    tmdbApiKey, "cast", x, 3) for x in flattenedCastIds]
 
 flattenedTopMoviesByLeadActor = flatten2DList(topMoviesByLeadActor, 0)
 
 # 10
-topMoviesByDirector = list(queryRecByPerson(tmdbApiKey, "crew", x, 3)
-                           for x in flattenedDirectorsIds)
+topMoviesByDirector = [queryRecByPerson(tmdbApiKey, "crew", x, 3)
+                       for x in flattenedDirectorsIds]
 
 flattenedTopMoviesByDirector = flatten2DList(topMoviesByDirector, 0)
 
