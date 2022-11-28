@@ -37,6 +37,7 @@ def processUserInput(userInput):
     def stripList(movieList):
         return [x.strip() for x in movieList]
 
+    # 7 and 9
     def removeEmptyStrings(movieList):
         return list(filter(lambda x: x != "", movieList))
 
