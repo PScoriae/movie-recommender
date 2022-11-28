@@ -43,7 +43,7 @@ def processUserInput(userInput):
 
     # 6 and 9
     def uriEncodeStrings(strippedMovieList):
-        return list(map(lambda movie: requote_uri(movie), strippedMovieList))
+        return [requote_uri(movie) for movie in strippedMovieList]
 
     # do not modify original input
     processedList = userInput
