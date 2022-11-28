@@ -202,16 +202,16 @@ topMoviesByLeadActor = list(queryRecByPerson(
     tmdbApiKey, "cast", x, 3) for x in flattenedCastIds)
 
 # 10
-flattenedTopMoviesByLeadActor = [
-    item for sublist in topMoviesByLeadActor for item in sublist]
+flattenedTopMoviesByLeadActor = list(
+    reduce(lambda a, b: a+b, topMoviesByLeadActor))
 
 # 10
 topMoviesByDirector = list(queryRecByPerson(tmdbApiKey, "crew", x, 3)
                            for x in flattenedDirectorsIds)
 
 # 10
-flattenedTopMoviesByDirector = [
-    item for sublist in topMoviesByDirector for item in sublist]
+flattenedTopMoviesByDirector = list(
+    reduce(lambda a, b: a+b, topMoviesByDirector))
 
 combinedMovieList = [*topMoviesByGenre, *
                      flattenedTopMoviesByDirector, *flattenedTopMoviesByDirector]
