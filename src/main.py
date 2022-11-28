@@ -41,7 +41,7 @@ def processUserInput(userInput):
     def removeEmptyStrings(movieList):
         return list(filter(lambda x: x != "", movieList))
 
-    # 6 and 9
+    # 10
     def uriEncodeStrings(strippedMovieList):
         return [requote_uri(movie) for movie in strippedMovieList]
 
@@ -59,12 +59,10 @@ def processUserInput(userInput):
 # 4
 def forMovies(funcGetMovieList):
 
-    # 6 and 9
+    # 10
     # response returns list of objects matching search criteria
     def callTmdbApi(tmdbApiKey):
-        return list(map(lambda movieName: requests.get(
-            f"https://api.themoviedb.org/3/search/movie?api_key={tmdbApiKey}&language=en-US&query={movieName}&page=1&include_adult=false").json(),
-            funcGetMovieList(input())))
+        return [requests.get(f"https://api.themoviedb.org/3/search/movie?api_key={tmdbApiKey}&language=en-US&query={movieName}&page=1&include_adult=false").json() for movieName in funcGetMovieList(input())]
 
     # 5
     return callTmdbApi
