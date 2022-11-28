@@ -17,6 +17,7 @@ from functools import reduce
 # 10- List Comprehensions
 # 11- Recursion
 
+
 # load environment variables for tmdb api key
 load_dotenv()
 tmdbApiKey = os.environ["TMDB_API_KEY"]
