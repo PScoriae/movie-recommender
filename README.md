@@ -1,6 +1,7 @@
+<div align='center'>
+
 # Movie Recommender
 
-<div align='center'>
 <p>
   <a href="https://linkedin.com/in/pierreccesario">
     <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555">
